@@ -121,9 +121,7 @@ def main():
 
     optimizer = get_optimizer(config, model)
 
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, config.TRAIN.LR_STEP, config.TRAIN.LR_FACTOR
-    )
+    
 
     # Data loading code
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -166,6 +164,28 @@ def main():
 
     best_perf = 0.0
     best_model = False
+    last_epoch = -1
+    begin_epoch = config.TRAIN.BEGIN_EPOCH
+    checkpoint_file = os.path.join(
+        final_output_dir, 'checkpoint.pth'
+    )
+
+    if config.AUTO_RESUME:
+      logger.info("=> loading checkpoint '{}'".format(checkpoint_file))
+      checkpoint = torch.load(checkpoint_file)
+      begin_epoch = checkpoint['epoch']
+      best_perf = checkpoint['perf']
+      last_epoch = checkpoint['epoch']
+      model.load_state_dict(checkpoint['state_dict'])
+
+      optimizer.load_state_dict(checkpoint['optimizer'])
+      logger.info("=> loaded checkpoint '{}' (epoch {})".format(
+          checkpoint_file, checkpoint['epoch']))
+
+    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, config.TRAIN.LR_STEP, config.TRAIN.LR_FACTOR,
+        last_epoch=last_epoch
+    )
     for epoch in range(config.TRAIN.BEGIN_EPOCH, config.TRAIN.END_EPOCH):
         lr_scheduler.step()
 
