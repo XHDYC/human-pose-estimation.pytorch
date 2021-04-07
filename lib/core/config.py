@@ -16,7 +16,7 @@ from easydict import EasyDict as edict
 
 
 config = edict()
-
+config.AUTO_RESUME = True
 config.OUTPUT_DIR = ''
 config.LOG_DIR = ''
 config.DATA_DIR = ''
